@@ -25,6 +25,9 @@ The game is then allowed to run for a number of cycles (this number is configura
 
 Players have a fixed number of pieces they may place (a game setting). They may place as many or as few as they like on each turn. When neither player has any pieces left the game runs for a final cycle and then ends. The player with the most pieces remaining is the winner. 
 
+## Mockup
+<img src="Mockup.png">
+[Figma document](https://www.figma.com/file/qr4g6X5nYcG97pEG1GGE64/The-Game-of-Life-The-Game)
 
 ## High level program design
 
