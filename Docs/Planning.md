@@ -27,7 +27,7 @@ Players have a fixed number of pieces they may place (a game setting). They may 
 
 ## Mockup
 <img src="Mockup.png">
-[Figma document](https://www.figma.com/file/qr4g6X5nYcG97pEG1GGE64/The-Game-of-Life-The-Game)
+<a href="https://www.figma.com/file/qr4g6X5nYcG97pEG1GGE64/The-Game-of-Life-The-Game">Figma document</a>
 
 ## High level program design
 
