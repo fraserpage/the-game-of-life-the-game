@@ -1,0 +1,78 @@
+:root {
+    --wght: 300;
+    --slnt: 0;
+    --mono: 0;
+    --casl: 0;
+}
+
+*,
+*:before {
+    font-variation-settings:    "wght" var(--wght),
+                                "slnt" var(--slnt),
+                                "MONO" var(--mono),
+                                "CASL" var(--casl);
+    box-sizing: border-box;
+}
+
+body{
+    font-family: 'Recursive', monospace;
+    padding: 3em 5%;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+#gameboard{
+    flex: 1;
+    display: grid;
+    grid-gap: 3px;
+}
+#gameboard .cell{
+    background-color: pink;
+}
+
+#gameboard .cell:hover{
+    background-color: rgb(248, 161, 176);
+}
+
+#gameboard .cell:active{
+    background-color: rgb(223, 98, 119);
+}
+
+header{
+    display: flex
+}
+header button{
+    margin-left: auto;
+}
+
+input {
+    width: 3em;
+    text-align: right;
+    border: none;
+    border-bottom: 1px solid;
+    font-family: 'Recursive';
+    --wght: 600;
+    margin: 0 0.5em;
+    display: inline-block;
+}
+button {
+    background: black;
+    color: white;
+    font-family: 'Recursive';
+    font-size: 1rem;
+    border: none;
+    padding: 0.4em 0.8em;
+    margin-bottom: 2rem;
+    transition: all 0.2s;
+    --wght: 400;
+}
+
+button:hover {
+    --slnt: -13;
+}
+
+button:active {
+    background: yellow;
+    color: black;
+}
