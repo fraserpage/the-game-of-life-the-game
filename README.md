@@ -64,16 +64,17 @@ The following based on game settings
 * Update message board
 
 ## Road map
-- [ ] - v1 - Implement Conway's Life algorithm in single player mode. I want to try to figure this out on my own. 
-- [ ] - v1.1 - I know there are more efficient ways to implement the algorithm than I am likely to arrive at on my own, so after getting my own working, do some research and upgrade it to an efficient algorithm.
+- [ ] v1 - Implement Conway's Life algorithm in single player mode. I want to try to figure this out on my own. 
+- [ ] v1.1 - I know there are more efficient ways to implement the algorithm than I am likely to arrive at on my own, so after getting my own working, do some research and upgrade it to an efficient algorithm.
     - [ ] Consider stretch goal of allowing for alternate cellular automata rules when designing algorithm. Can this flexibility be coded in?
-- [ ] - v.1.5 - Two player mode, single turn mode
-- [ ] - v.2 - Two player mode, turn based
+- [ ] v.1.5 - Two player mode, single turn mode
+- [ ] v.2 - Two player mode, turn based
 
 ### Nice to have features
-- [ ] - CSS animations for cell creation/destruction -- distinct animations for hostile takeover/destruction?
+- [ ] CSS animations for cell creation/destruction -- distinct animations for hostile takeover/destruction?
+- [ ] Library of cell patterns that can be dragged and dropped on to the board
 
 ### Stretch goals 
-- [ ] - use game board action to meaningfully generate game soundtrack. The challenge is that everything happens at once. 
-- [ ] - alternate cellular automata rules
-- [ ] - octagon based game board variant
+- [ ] use game board action to meaningfully generate game soundtrack. The challenge is that everything happens at once. 
+- [ ] alternate cellular automata rules
+- [ ] octagon based game board variant
