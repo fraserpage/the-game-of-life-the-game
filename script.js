@@ -1,3 +1,5 @@
+import { libraryContent } from './library.js'
+
 /*----- constants -----*/ 
 
 /*----- app's state (variables) -----*/ 
@@ -9,6 +11,7 @@ const gridObj = []
 const optionsElem = document.getElementById('options')
 const scoreboardElem = document.getElementById('scoreboard')
 const gridElem = document.getElementById('grid')
+const libraryElem = document.getElementById('library')
 const cycleBtn = document.getElementById('cycle')
 const switchPlayer = document.getElementById('switch-player')
 /*----- event listeners -----*/ 
@@ -44,7 +47,7 @@ init()
 
 function init(){
     options = {
-        cellSize : 25,
+        cellSize : 15,
     }
     options.gridWidth =  Math.floor( gridElem.clientWidth / options.cellSize )
     options.gridHeight =  Math.floor( gridElem.clientHeight / options.cellSize )
@@ -185,3 +188,39 @@ function forEachSurroundingCell(row, col, callback){
         }
     }
 }
+
+//Library 
+
+function placeLibraryItem(row,col, coords){
+    for (let coord of coords){
+        addCellToBoardObj(coord[0] + row, coord[1] + col)
+    }
+    updateGridElem(state.activeGrid)
+}
+
+function buildLibraryElem(){
+
+    for (let pattern in libraryContent){
+        let patternElm = document.createElement("div")
+        patternElm.id = pattern
+        patternElm.className = "pattern"
+        patternElm.style.gridTemplateColumns = "repeat("+libraryContent[pattern].width+", 1fr)"
+        patternElm.style.gridTemplateRows = "repeat("+libraryContent[pattern].height+", 1fr)" 
+        
+        let grid = []
+        for (let row = 0; row < libraryContent[pattern].height; row++){
+            grid[row] = []
+            for (let col = 0; col < libraryContent[pattern].width; col++){
+                grid[row][col] = document.createElement("div")
+                patternElm.appendChild(grid[row][col])
+            }
+        }
+        for (let coord of libraryContent[pattern].coords){
+            console.log(coord)
+            grid[coord[0]][coord[1]].className = "coord"
+        }
+        console.log("grid",grid)
+        libraryElem.appendChild(patternElm)
+    } 
+}
+buildLibraryElem()

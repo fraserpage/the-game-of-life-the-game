@@ -76,3 +76,11 @@ button:active {
     background: yellow;
     color: black;
 }
+
+.pattern{
+    display: grid;
+    grid-gap: 3px;
+}
+.pattern .coord{
+    background-color: black;
+}
