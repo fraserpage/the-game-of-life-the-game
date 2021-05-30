@@ -22,27 +22,27 @@ body{
     display: flex;
     flex-direction: column;
 }
-#gameboard{
+#grid{
     flex: 1;
     display: grid;
     grid-gap: 3px;
 }
-#gameboard .cell{
+#grid .cell{
     background-color: pink;
 }
 
-#gameboard .cell:hover{
+#grid .cell:hover{
     background-color: rgb(248, 161, 176);
 }
 
-#gameboard .cell:active{
+#grid .cell:active{
     background-color: rgb(223, 98, 119);
 }
 
 header{
     display: flex
 }
-header button{
+header > :last-child{
     margin-left: auto;
 }
 

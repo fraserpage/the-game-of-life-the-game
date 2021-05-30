@@ -2,16 +2,18 @@
 
 /*----- app's state (variables) -----*/ 
 let options = {}
-const gameBoardObj = []
-let timer;
+let state = {}
+const gridObj = []
+
 /*----- cached element references -----*/ 
 const optionsElem = document.getElementById('options')
 const scoreboardElem = document.getElementById('scoreboard')
-const gameBoardElem = document.getElementById('gameboard')
+const gridElem = document.getElementById('grid')
 const cycleBtn = document.getElementById('cycle')
+const switchPlayer = document.getElementById('switch-player')
 /*----- event listeners -----*/ 
 
-gameBoardElem.addEventListener('click',function(e){
+gridElem.addEventListener('click',function(e){
     if(e.target.className == 'cell'){
         clickOnCell(e.target)
     }
@@ -25,8 +27,15 @@ cycleBtn.addEventListener('click',function(e){
     }
     else{
         cycleBtn.innerText = "Go"
-        clearTimeout(timer);
+        clearTimeout(state.timer);
     }
+});
+
+switchPlayer.addEventListener('click',function(e){
+
+    state.currentPlayer === 1 ? state.currentPlayer = 2 
+    : state.currentPlayer = 1
+
 });
 
 /*----- functions -----*/
@@ -37,61 +46,122 @@ function init(){
     options = {
         cellSize : 25,
     }
-    options.boardWidth =  Math.floor( gameBoardElem.clientWidth / options.cellSize )
-    options.boardHeight =  Math.floor( gameBoardElem.clientHeight / options.cellSize )
+    options.gridWidth =  Math.floor( gridElem.clientWidth / options.cellSize )
+    options.gridHeight =  Math.floor( gridElem.clientHeight / options.cellSize )
+    // options.gridWidth = 3  
+    // options.gridHeight = 3
 
-    buildGameBoardElem()
-    buildGameBoardObject()
+    state.currentPlayer = 1
+    state.activeGrid = 0
+    state.nextGrid = 1
+
+    buildGridElem()
+    initGridObject()
 }
 
-function buildGameBoardObject(){
-    for (let row = 0; row < options.boardHeight; row++){
-        gameBoardObj[row] = []
-        for (let col = 0; col < options.boardWidth; col++){
-            gameBoardObj[row][col] = {} 
+function initGridObject(){
+    for (let g = 0; g < 2; g++){
+        gridObj[g] = []
+        for (let row = 0; row < options.gridHeight; row++){
+            gridObj[g][row] = []
+            for (let col = 0; col < options.gridWidth; col++){
+                gridObj[g][row][col] = {alive: false}
+            }
         }
     }
 }
 
-function buildGameBoardElem(){
-    gameBoardElem.innerHTML = ""
-    loopThroughGameBoard((row,col)=>{
+function buildGridElem(){
+    gridElem.innerHTML = ""
+    forEachCell((row,col)=>{
         let cell = document.createElement("div")
         cell.id = 's-'+row+"-"+col
         cell.dataset.row = row
         cell.dataset.col = col            
         cell.className = 'cell'
-        gameBoardElem.appendChild(cell)
+        gridElem.appendChild(cell)
     })
     
-    gameBoardElem.style.gridTemplateColumns = "repeat("+options.boardWidth+", 1fr)"
-    gameBoardElem.style.gridTemplateRows = "repeat("+options.boardHeight+", 1fr)"   
+    gridElem.style.gridTemplateColumns = "repeat("+options.gridWidth+", 1fr)"
+    gridElem.style.gridTemplateRows = "repeat("+options.gridHeight+", 1fr)"   
 }
+
+
+function render(){
+
+}
+
+
 
 function clickOnCell(cell){
     let col = parseInt(cell.dataset.col)
     let row = parseInt(cell.dataset.row)
     
     // highlightSurroundingCells(col,row)
-    addCellToBoard(row,col)
-    drawToGameBoard()
+    addCellToBoardObj(row,col)
+    updateGridElem(state.activeGrid)
 }
 
-function addCellToBoard(row,col){
-    let cell = gameBoardObj[row][col]
-    if (typeof cell.v === "undefined" || cell.v === 0){
-        gameBoardObj[row][col].v = 1
+function addCellToBoardObj(row,col){
+    let cell = gridObj[state.activeGrid][row][col]
+    if (cell.alive === false){
+        gridObj[state.activeGrid][row][col] = {alive: true, p: state.currentPlayer, new: true}
+    }
+    // Allow undoing clicked cells
+    else if (cell.new === true  && cell.p === state.currentPlayer){
+        gridObj[state.activeGrid][row][col] = {alive: false}
     }
 }
 
-function render(){
+function life(){
+    forEachCell( (row,col)=>{
+        let countLife = 0 
+        let countPlayer = {1:0,2:0}
+        gridObj[state.nextGrid][row][col] = {alive: false}
+        
+        forEachSurroundingCell(row,col,(r,c)=>{
+            let surroundingCell = gridObj[state.activeGrid][r][c]
+            if (surroundingCell.alive === true) countLife++
+            if (surroundingCell.p === 1) countPlayer[1]++
+            if (surroundingCell.p === 2) countPlayer[2]++
+        })
 
+        // cell is alive, it stays alive if it has either 2 or 3 live neighbors
+        if (gridObj[state.activeGrid][row][col].alive === true && (countLife === 2 || countLife === 3)){
+            gridObj[state.nextGrid][row][col] = {alive: true}
+            setOwnerOfCell(row,col,countPlayer)
+        }
+        // cell is dead, it comes to life if it has 3 live neighbors
+        else if (gridObj[state.activeGrid][row][col].alive === false && countLife === 3){
+            gridObj[state.nextGrid][row][col] = {alive: true}
+            setOwnerOfCell(row,col,countPlayer)
+        }
+        else{
+            gridObj[state.nextGrid][row][col] = {alive: false}
+        }
+    })
+    updateGridElem(state.nextGrid)
+    swapActiveGrid()
+    state.timer = setTimeout(life, 150);
 }
 
-function drawToGameBoard(){
-    loopThroughGameBoard((row,col)=>{
-        if (gameBoardObj[row][col].v === 1){
-            document.getElementById(`s-${row}-${col}`).style.backgroundColor = 'red'
+function setOwnerOfCell(row,col, countPlayer){
+    countPlayer[1] > 1 ? gridObj[state.nextGrid][row][col].p = 1
+    : countPlayer[2] > 1 ? gridObj[state.nextGrid][row][col].p = 2 
+    : ""
+}
+
+function swapActiveGrid(){
+    state.activeGrid = state.activeGrid ^ 1
+    state.nextGrid = state.nextGrid ^ 1
+}
+
+function updateGridElem(whichGridObj){
+    forEachCell((row,col)=>{
+        if (gridObj[whichGridObj][row][col].alive === true){
+            gridObj[whichGridObj][row][col].p === 1 ?
+                document.getElementById(`s-${row}-${col}`).style.backgroundColor = 'red'
+                : document.getElementById(`s-${row}-${col}`).style.backgroundColor = 'blue'
         }
         else{
             document.getElementById(`s-${row}-${col}`).style.backgroundColor = ''
@@ -99,41 +169,19 @@ function drawToGameBoard(){
     })
 }
 
-function loopThroughGameBoard(callback){
-    for (let row = 0; row < options.boardHeight; row++){
-        for (let col = 0; col < options.boardWidth; col++){
+function forEachCell(callback){
+    for (let row = 0; row < options.gridHeight; row++){
+        for (let col = 0; col < options.gridWidth; col++){
             callback(row,col)
         }
     }
 }
-// params: row and col of cell
-// callback: row and col of surrounding cells 
-function loopThroughSurroundingCells(row, col, callback){
-    for (let r = Math.max(row - 1,0); r <= Math.min(row + 1, options.boardHeight - 1); r++){
-        for (let c = Math.max(col - 1,0); c <= Math.min(col + 1,options.boardWidth -1); c++){
+// update this with toroidal option
+function forEachSurroundingCell(row, col, callback){
+    for (let r = Math.max(row - 1,0); r <= Math.min(row + 1, options.gridHeight - 1); r++){
+        for (let c = Math.max(col - 1,0); c <= Math.min(col + 1,options.gridWidth -1); c++){
             if ( r === row && c === col ) continue
             callback(r,c)
         }
     }
 }
-
-
-
-function life(){
-    loopThroughGameBoard((row,col)=>{
-        let countLife = 0
-        loopThroughSurroundingCells(row,col,(r,c)=>{
-            if (gameBoardObj[r][c].v === 1) countLife++
-        })
-        // cell is alive, it stays alive if it has either 2 or 3 live neighbors
-        if (gameBoardObj[row][col].v === 1 && (countLife === 2 || countLife === 3)){}
-        // cell is dead, it comes to life if it has 3 live neighbors
-        else if (gameBoardObj[row][col].v === 0 && countLife === 3){
-            gameBoardObj[row][col].v = 1
-        }
-        else{ gameBoardObj[row][col].v = 0 }
-    })
-    drawToGameBoard()
-    timer = setTimeout(life, 200);
-}
-
