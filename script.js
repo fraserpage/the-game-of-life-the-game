@@ -15,8 +15,8 @@ const gridElem = document.getElementById('grid')
 const libraryElem = document.getElementById('library')
 const cycleBtn = document.getElementById('cycle')
 const switchPlayer = document.getElementById('switch-player')
-/*----- event listeners -----*/ 
 
+/*----- event listeners -----*/ 
 gridElem.addEventListener('click',function(e){
     if(e.target.className == 'cell'){
         clickOnCell(e.target)
@@ -37,8 +37,7 @@ cycleBtn.addEventListener('click',function(e){
 
 switchPlayer.addEventListener('click',function(e){
 
-    state.currentPlayer === 1 ? state.currentPlayer = 2 
-    : state.currentPlayer = 1
+    state.currentPlayer = state.currentPlayer ^ 1
 
 });
 
@@ -55,20 +54,16 @@ function init(){
     options.gridWidth =  Math.floor( gridElem.clientWidth / options.targetCellSize )
     options.gridHeight =  Math.floor( gridElem.clientHeight / options.targetCellSize )
     options.cellSize =  gridElem.clientWidth / options.gridWidth / window.innerWidth * 100
-
-
     
-    state.currentPlayer = 1
+    state.currentPlayer = 0
     state.activeGrid = 0
     state.nextGrid = 1
     state.prevHoveredCell
 
-
     buildGridElem()
     initGridObject()
+    buildLibraryElem()
 }
-
-
 
 function initGridObject(){
     for (let g = 0; g < 2; g++){
@@ -97,7 +92,6 @@ function buildGridElem(){
     gridElem.style.gridTemplateRows = `repeat(${options.gridHeight}, ${options.cellSize}vw)`
 }
 
-
 function render(){
 
 }
@@ -125,6 +119,7 @@ function addCellToBoardObj(row,col){
 }
 
 function life(){
+    let scores = [0,0]
     forEachCell( (row,col)=>{
         let countLife = 0 
         let countPlayer = {1:0,2:0}
@@ -133,8 +128,8 @@ function life(){
         forEachSurroundingCell(row,col,(r,c)=>{
             let surroundingCell = gridObj[state.activeGrid][r][c]
             if (surroundingCell.alive === true) countLife++
+            if (surroundingCell.p === 0) countPlayer[0]++
             if (surroundingCell.p === 1) countPlayer[1]++
-            if (surroundingCell.p === 2) countPlayer[2]++
         })
 
         // cell is alive, it stays alive if it has either 2 or 3 live neighbors
@@ -157,8 +152,8 @@ function life(){
 }
 
 function setOwnerOfCell(row,col, countPlayer){
-    countPlayer[1] > 1 ? gridObj[state.nextGrid][row][col].p = 1
-    : countPlayer[2] > 1 ? gridObj[state.nextGrid][row][col].p = 2 
+    countPlayer[0] > 1 ? gridObj[state.nextGrid][row][col].p = 0
+    : countPlayer[1] > 1 ? gridObj[state.nextGrid][row][col].p = 1 
     : ""
 }
 
@@ -191,45 +186,36 @@ function forEachCell(callback){
 function forEachSurroundingCell(row, col, callback){
     // loop starts at 0 or 1 up from current
     // loop goes until 1 down from current row or bottom row
-    for (let r = Math.max(row - 1,0); r <= Math.min(row + 1, options.gridHeight - 1); r++){
-        for (let c = Math.max(col - 1,0); c <= Math.min(col + 1,options.gridWidth -1); c++){
+    for (let r = sRowMin(row) ; r <= sRowMax(row); r++){
+        for (let c = sColMin(col); c <= sColMax(col); c++){
             if ( r === row && c === col ) continue
-            callback(r,c)
+            let sR = r
+            let sC = c
+            if ( sR === -1 ) sR = options.gridHeight - 1
+            if ( sC === -1 ) sC = options.gridWidth - 1
+            if ( sR === options.gridHeight ) sR = 0
+            if ( sC === options.gridWidth ) sC = 0
+            callback(sR,sC)
         }
-    }
-    if (options.toroidal){
-        toroidalLoop(row, col, callback)
-    }
-    
+    }   
 }
 
-function toroidalLoop(row, col, callback) {
-    if (row === 0){
-        let r = options.gridHeight - 1;
-        for (let c = Math.max(col - 1,0); c <= Math.min(col + 1,options.gridWidth -1); c++){
-            callback(r,c)
-        } 
-    }
-    if (row === options.gridHeight - 1){
-        let r = 0;
-        for (let c = Math.max(col - 1,0); c <= Math.min(col + 1,options.gridWidth -1); c++){
-            callback(r,c)
-        } 
-    }
-    if (col === 0){
-        let c = options.gridWidth - 1;
-        for (let r = Math.max(row - 1,0); r <= Math.min(row + 1, options.gridHeight - 1); r++){
-            callback(r,c)
-        } 
-    }
-    if (col === options.gridWidth - 1){
-        let c = 0;
-        for (let r = Math.max(row - 1,0); r <= Math.min(row + 1, options.gridHeight - 1); r++){
-            callback(r,c)
-        } 
-    }
+function sRowMin(row) {
+    return options.toroidal ? row - 1
+    : Math.max(row - 1,0)
 }
-
+function sRowMax(row) {
+    return options.toroidal ? row + 1
+    : Math.min(row + 1, options.gridHeight - 1)
+}
+function sColMin(col) {
+    return options.toroidal ? col - 1
+    : Math.max(col - 1,0)
+}
+function sColMax(col) {
+    return options.toroidal ? col + 1
+    : Math.min(col + 1,options.gridWidth -1)
+}
 
 //Library 
 
@@ -258,13 +244,9 @@ function buildLibraryElem(){
         libraryElem.appendChild(patternElm)
     } 
 }
-buildLibraryElem()
 
 
-// placeLibraryItem(1,1,libraryContent['r-pentomino'].coords)
 
-
-console.log(cellElem["0-0"].offsetWidth)
 
 function dragstart_handler(e){
     state.offsetX = e.offsetX - (cellElem["0-0"].offsetWidth / 2)
@@ -277,7 +259,6 @@ function dragstart_handler(e){
 
 function dragover_handler(e) {
     e.preventDefault();
-    e.dataTransfer.dropEffect = "move";
     let x = e.clientX - state.offsetX
     let y = e.clientY - state.offsetY
 
@@ -300,7 +281,6 @@ function dragover_handler(e) {
 }
 
 function setHoverTarget(x,y) {
-    
     state.hoverTarget = document.elementFromPoint(x, y)
     state.hoverTargetBounds.left = state.hoverTarget.offsetLeft
     state.hoverTargetBounds.right = state.hoverTargetBounds.left + state.hoverTarget.offsetWidth
@@ -310,7 +290,6 @@ function setHoverTarget(x,y) {
 
 function drop_handler(e) {
     e.preventDefault();
-    
     let row = parseInt(state.hoverTarget.dataset.row,10)
     let col = parseInt(state.hoverTarget.dataset.col,10)
     placeLibraryItem(row, col, libraryContent[state.hoverPattern].coords)
@@ -350,6 +329,16 @@ function placeLibraryItem(row,col, coords){
     updateGridElem(state.activeGrid)
 }
 
+/**
+  * Loop through a library element's coordinates and pass their position on the main grid to a callback function.
+  *
+  * @function forEachCoord
+  * @param {int} row - The row of the main grid that the topmost cells of the library element will be placed in
+  * @param {int} col - The col of the main grid that the leftmost cells of the library element will be placed in
+  * @param {int[][]} coords - An array of coordinates of the cells in the pattern
+  * @param {int} coords[][] - The x, y coordinates of the cell of the pattern
+  * @param {function(int, int)} callback - A callback to run with the coordinates of the cell on the main grid
+  */
 function forEachCoord(row,col,coords, callback) {
     for (let coord of coords){
         let refRow = coord[0] + row
@@ -358,55 +347,4 @@ function forEachCoord(row,col,coords, callback) {
             callback(refRow,refCol)
         }
     }
-}
-
-
-function colToroidal(col) {
-    if (col <= 0){
-        return options.gridWidth - col - 1
-    }
-    else if(col >= options.gridWidth - 1){
-        return 0
-    }
-    else{
-        return col
-    }
-}
-
-function rowToroidal(row) {
-    if (row <= 0){
-        return options.gridHeight - 1
-    }
-    else if(row >= options.gridHeight - 1){
-        return 0
-    }
-    else{
-        return row
-    }
-}
-
-// Utilities
-
-/**
- * Returns a number whose value is limited to the given range.
- *
- * Example: limit the output of this computation to between 0 and 255
- * (x * 255).clamp(0, 255)
- *
- * @param {Number} min The lower boundary of the output range
- * @param {Number} number The number to be clamped
- * @param {Number} max The upper boundary of the output range
- * @returns A number in the range [min, max]
- * @type Number
- */
-function clamp(min, number, max) {
-    return Math.min(Math.max(number, min), max);
-  };
-
-function clampRow(row) {
-    return clamp(0, row, options.gridHeight - 1)
-}
-
-function clampCol(col) {
-    return clamp(0, col, options.gridWidth - 1)
 }
