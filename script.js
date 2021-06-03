@@ -110,10 +110,10 @@ function clickOnCell(cell){
 function addCellToBoardObj(row,col){
     let cell = gridObj[state.activeGrid][row][col]
     if (cell.alive === false){
-        gridObj[state.activeGrid][row][col] = {alive: true, p: state.currentPlayer, new: true}
+        gridObj[state.activeGrid][row][col] = {alive: true, player: state.currentPlayer, new: true}
     }
     // Allow undoing clicked cells
-    else if (cell.new === true  && cell.p === state.currentPlayer){
+    else if (cell.new === true  && cell.player === state.currentPlayer){
         gridObj[state.activeGrid][row][col] = {alive: false}
     }
 }
@@ -122,14 +122,14 @@ function life(){
     let scores = [0,0]
     forEachCell( (row,col)=>{
         let countLife = 0 
-        let countPlayer = {1:0,2:0}
+        let countPlayer = [0,0]
         gridObj[state.nextGrid][row][col] = {alive: false}
         
         forEachSurroundingCell(row,col,(r,c)=>{
             let surroundingCell = gridObj[state.activeGrid][r][c]
             if (surroundingCell.alive === true) countLife++
-            if (surroundingCell.p === 0) countPlayer[0]++
-            if (surroundingCell.p === 1) countPlayer[1]++
+            if (surroundingCell.player === 0) countPlayer[0]++
+            if (surroundingCell.player === 1) countPlayer[1]++
         })
 
         // cell is alive, it stays alive if it has either 2 or 3 live neighbors
@@ -152,8 +152,8 @@ function life(){
 }
 
 function setOwnerOfCell(row,col, countPlayer){
-    countPlayer[0] > 1 ? gridObj[state.nextGrid][row][col].p = 0
-    : countPlayer[1] > 1 ? gridObj[state.nextGrid][row][col].p = 1 
+    countPlayer[0] > 1 ? gridObj[state.nextGrid][row][col].player = 0
+    : countPlayer[1] > 1 ? gridObj[state.nextGrid][row][col].player = 1 
     : ""
 }
 
@@ -165,12 +165,10 @@ function swapActiveGrid(){
 function updateGridElem(whichGridObj){
     forEachCell((row,col)=>{
         if (gridObj[whichGridObj][row][col].alive === true){
-            gridObj[whichGridObj][row][col].p === 1 ?
-                cellElem[`${row}-${col}`].style.backgroundColor = 'red'
-                : cellElem[`${row}-${col}`].style.backgroundColor = 'blue'
+            cellElem[`${row}-${col}`].dataset.player = gridObj[whichGridObj][row][col].player
         }
         else{
-            cellElem[`${row}-${col}`].style.backgroundColor = ''
+            cellElem[`${row}-${col}`].dataset.player = ''
         }
     })
 }
@@ -313,10 +311,10 @@ function setHoverShadow(row,col,coords, erase){
     forEachCoord(row,col,coords, (refRow,refCol)=>{
         if (gridObj[state.activeGrid][refRow][refCol].alive === false){
             if (erase === true){
-                cellElem[`${refRow}-${refCol}`].style.backgroundColor = ''
+                cellElem[`${refRow}-${refCol}`].classList.remove('hover')
             }
             else{
-                cellElem[`${refRow}-${refCol}`].style.backgroundColor = '#999'
+                cellElem[`${refRow}-${refCol}`].classList.add('hover')
             }
         }
     })

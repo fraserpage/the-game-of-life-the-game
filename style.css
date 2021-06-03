@@ -37,7 +37,7 @@ body{
     background-color: pink;
     border: 1px solid white;
 }
-
+#grid .cell.hover,
 #grid .cell:hover{
     background-color: rgb(248, 161, 176);
 }
@@ -91,4 +91,11 @@ button:active {
     background-color: black;
     background-clip: padding-box;
     border: 1px solid transparent;
+}
+
+#grid .cell[data-player="0"]{
+    background-color: red;
+}
+#grid .cell[data-player="1"]{
+    background-color: blue;
 }
