@@ -13,15 +13,19 @@ const optionsElem = document.getElementById('options')
 const scoreboardElem = document.getElementById('scoreboard')
 const gridElem = document.getElementById('grid')
 const libraryElem = document.getElementById('library')
+const showLibraryBtn = document.getElementById('show-library')
+const dragHolder = document.getElementById('drag-holder')
 const cycleBtn = document.getElementById('cycle')
 const switchPlayer = document.getElementById('switch-player')
 
 /*----- event listeners -----*/ 
 gridElem.addEventListener('click',function(e){
-    if(e.target.className == 'cell'){
+    if(e.target.classList.contains('cell')){
         clickOnCell(e.target)
     }
 });
+
+// Buttons
 
 cycleBtn.addEventListener('click',function(e){
 
@@ -36,9 +40,19 @@ cycleBtn.addEventListener('click',function(e){
 });
 
 switchPlayer.addEventListener('click',function(e){
-
     state.currentPlayer = state.currentPlayer ^ 1
+    render(state.activeGrid)
+});
 
+showLibraryBtn.addEventListener('click',function(e){
+    if (showLibraryBtn.innerText === "Show Library"){
+        showLibraryBtn.innerText = "Hide Library"
+        libraryElem.classList.remove('hide')
+    }
+    else{
+        showLibraryBtn.innerText = "Show Library"
+        libraryElem.classList.add('hide')
+    }
 });
 
 /*----- Game Setup Functions -----*/
@@ -47,7 +61,7 @@ init()
 
 function init(){
     options = {
-        targetCellSize : 13,
+        targetCellSize : 20,
         toroidal: true
     }
     options.gridWidth =  Math.floor( gridElem.clientWidth / options.targetCellSize )
@@ -59,10 +73,12 @@ function init(){
     state.nextGrid = 1
     state.prevHoveredCell
     state.scores = [0,0]
+    state.pieces = [10,10]
 
     buildGridElem()
     initGridObject()
     buildLibraryElem()
+    render(state.activeGrid)
 }
 
 function initGridObject(){
@@ -90,6 +106,7 @@ function buildGridElem(){
     })
     gridElem.style.gridTemplateColumns = `repeat(${options.gridWidth}, ${options.cellSize}vw)`
     gridElem.style.gridTemplateRows = `repeat(${options.gridHeight}, ${options.cellSize}vw)`
+    gridElem.style.flex = "unset"
 }
 
 function render(grid){
@@ -102,21 +119,23 @@ function render(grid){
 function clickOnCell(cell){
     let col = parseInt(cell.dataset.col)
     let row = parseInt(cell.dataset.row)
-    
     addCellToBoardObj(row,col)
     render(state.activeGrid)
 }
 
 function addCellToBoardObj(row,col){
-    let cell = gridObj[state.activeGrid][row][col]
-    if (cell.alive === false){
-        gridObj[state.activeGrid][row][col] = {alive: true, player: state.currentPlayer, new: true}
-        state.scores[state.currentPlayer]++
-    }
-    // Allow undoing clicked cells
-    else if (cell.new === true  && cell.player === state.currentPlayer){
-        gridObj[state.activeGrid][row][col] = {alive: false}
-        state.scores[state.currentPlayer]--
+    if (state.pieces[state.currentPlayer] > 0){
+        if (gridObj[state.activeGrid][row][col].alive === false){
+            gridObj[state.activeGrid][row][col] = {alive: true, player: state.currentPlayer, new: true}
+            state.scores[state.currentPlayer]++
+            state.pieces[state.currentPlayer]--
+        }
+        // Allow undoing clicked cells
+        else if (gridObj[state.activeGrid][row][col].new === true  && gridObj[state.activeGrid][row][col].player === state.currentPlayer){
+            gridObj[state.activeGrid][row][col] = {alive: false}
+            state.scores[state.currentPlayer]--
+            state.pieces[state.currentPlayer]++
+        }
     }
 }
 
@@ -187,7 +206,11 @@ function updateGridElem(whichGridObj){
 }
 
 function updateScoreboard() {
-    scoreboardElem.innerHTML = `Player 1: ${state.scores[0]} Player 2: ${state.scores[1]}`
+    scoreboardElem.innerHTML = `<strong>Player ${state.currentPlayer + 1}'s turn</strong> <br>
+                                <strong>Scores</strong>
+                                Player 1: ${state.scores[0]} Player 2: ${state.scores[1]} <br>
+                                <strong>Pieces to place:</strong>
+                                Player 1: ${state.pieces[0]} Player 2: ${state.pieces[1]}`
 }
 
 /*----- Helper Functions -----*/
@@ -201,8 +224,6 @@ function forEachCell(callback){
 }
 
 function forEachSurroundingCell(row, col, callback){
-    // loop starts at 0 or 1 up from current
-    // loop goes until 1 down from current row or bottom row
     for (let r = sRowMin(row) ; r <= sRowMax(row); r++){
         for (let c = sColMin(col); c <= sColMax(col); c++){
             if ( r === row && c === col ) continue
@@ -249,6 +270,8 @@ function buildLibraryElem(){
         patternElm.style.gridTemplateRows = `repeat(${libraryContent[pattern].height}, ${options.cellSize}vw)`
         patternElm.draggable = true
         patternElm.addEventListener("dragstart", dragstart_handler);
+        // patternElm.addEventListener("mousedown", mousedownPattern);
+        // patternElm.addEventListener("mousemove", mousemovePattern);
 
         let grid = []
         for (let row = 0; row < libraryContent[pattern].height; row++){
@@ -274,16 +297,36 @@ gridElem.addEventListener('dragend',dragend_handler)
 gridElem.addEventListener('drop',drop_handler)
 
 state.dragEnterCounter = 0
+let node 
+function mousedownPattern(e) {
+    console.log(e)
+    let pattern = e.path[1]
+    node = pattern.cloneNode(true)
+    node.style.position = 'absolute'
+    node.style.top = e.clientY - e.offsetY+"px"
+    node.style.left = e.clientX - e.offsetX+"px"
+    dragHolder.innerHTML = ""
+    dragHolder.appendChild(node)
+}
+
+function mousemovePattern(e) {
+    // console.log(e)
+
+    node.style.top = e.clientY+"px"
+    node.style.left = e.clientX+"px"
+}
 
 function dragstart_handler(e){
     state.offsetX = e.offsetX - (cellElem["0-0"].offsetWidth / 2)
     state.offsetY = e.offsetY - (cellElem["0-0"].offsetWidth / 2)
     state.prevHoveredCell = {row:false, col:false}
     state.patternElm = e.target
+    state.patternElm.classList.add('picked-up')
+    libraryElem.classList.add('hide')
+    showLibraryBtn.innerText = "Show Library"
     state.hoverPattern = e.target.id
-    state.hoverTarget = ""
+    state.hoverTarget = undefined
     state.hoverTargetBounds = {}
-    state.patternElm.classList = 'picked-up pattern'
 }
 
 function dragover_handler(e) {
@@ -291,22 +334,22 @@ function dragover_handler(e) {
     let x = e.clientX - state.offsetX
     let y = e.clientY - state.offsetY
 
-    state.patternElm.classList = 'hover pattern'
-    if (state.hoverTarget === "") setHoverTarget(x,y) 
+    if (typeof state.hoverTarget === "undefined") setHoverTarget(x,y) 
+    if (typeof state.hoverTarget !== "undefined"){
+        //calculate the bounds of the cell so we don't have to call document.elementFromPoint(x, y) constantly
+        // honestly not sure if this is working entirely correctly
+        if ((x < state.hoverTargetBounds.left || x > state.hoverTargetBounds.right) ||
+            (y < state.hoverTargetBounds.top || y > state.hoverTargetBounds.bottom)) {
+            
+            setHoverTarget(x,y) 
+        }
 
-    //calculate the bounds of the cell so we don't have to call document.elementFromPoint(x, y) constantly
-    // honestly not sure if this is working
-    if ((x < state.hoverTargetBounds.left || x > state.hoverTargetBounds.right) ||
-        (y < state.hoverTargetBounds.top || y > state.hoverTargetBounds.bottom)) {
-        
-        setHoverTarget(x,y) 
-    }
-    
-    let row = parseInt(state.hoverTarget.dataset.row,10)
-    let col = parseInt(state.hoverTarget.dataset.col,10)
+        let row = parseInt(state.hoverTarget.dataset.row,10)
+        let col = parseInt(state.hoverTarget.dataset.col,10)
 
-    if  ( ! Number.isNaN(row) && !Number.isNaN(col)) {
-        hover(row, col, libraryContent[state.hoverPattern].coords)
+        if  ( ! Number.isNaN(row) && !Number.isNaN(col)) {
+            hover(row, col, libraryContent[state.hoverPattern].coords)
+        }
     }
 }
 
@@ -379,6 +422,7 @@ function placeLibraryItem(row,col, coords){
         addCellToBoardObj(refRow, refCol)
     })
     updateGridElem(state.activeGrid)
+    render(state.activeGrid)
 }
 
 /**
