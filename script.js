@@ -41,14 +41,13 @@ switchPlayer.addEventListener('click',function(e){
 
 });
 
-/*----- functions -----*/
-
+/*----- Game Setup Functions -----*/
 
 init()
 
 function init(){
     options = {
-        targetCellSize : 20,
+        targetCellSize : 13,
         toroidal: true
     }
     options.gridWidth =  Math.floor( gridElem.clientWidth / options.targetCellSize )
@@ -59,6 +58,7 @@ function init(){
     state.activeGrid = 0
     state.nextGrid = 1
     state.prevHoveredCell
+    state.scores = [0,0]
 
     buildGridElem()
     initGridObject()
@@ -92,31 +92,35 @@ function buildGridElem(){
     gridElem.style.gridTemplateRows = `repeat(${options.gridHeight}, ${options.cellSize}vw)`
 }
 
-function render(){
-
+function render(grid){
+    updateGridElem(grid)
+    updateScoreboard() 
 }
 
-
+/*----- Player Action Functions -----*/
 
 function clickOnCell(cell){
     let col = parseInt(cell.dataset.col)
     let row = parseInt(cell.dataset.row)
     
     addCellToBoardObj(row,col)
-    updateGridElem(state.activeGrid)
-    // highlightSurroundingCells(row, col)
+    render(state.activeGrid)
 }
 
 function addCellToBoardObj(row,col){
     let cell = gridObj[state.activeGrid][row][col]
     if (cell.alive === false){
         gridObj[state.activeGrid][row][col] = {alive: true, player: state.currentPlayer, new: true}
+        state.scores[state.currentPlayer]++
     }
     // Allow undoing clicked cells
     else if (cell.new === true  && cell.player === state.currentPlayer){
         gridObj[state.activeGrid][row][col] = {alive: false}
+        state.scores[state.currentPlayer]--
     }
 }
+
+/*----- Life Algorithm Functions -----*/
 
 function life(){
     let scores = [0,0]
@@ -136,17 +140,23 @@ function life(){
         if (gridObj[state.activeGrid][row][col].alive === true && (countLife === 2 || countLife === 3)){
             gridObj[state.nextGrid][row][col] = {alive: true}
             setOwnerOfCell(row,col,countPlayer)
+            scores[gridObj[state.nextGrid][row][col].player]++
         }
         // cell is dead, it comes to life if it has 3 live neighbors
         else if (gridObj[state.activeGrid][row][col].alive === false && countLife === 3){
             gridObj[state.nextGrid][row][col] = {alive: true}
             setOwnerOfCell(row,col,countPlayer)
+            scores[gridObj[state.nextGrid][row][col].player]++
         }
         else{
             gridObj[state.nextGrid][row][col] = {alive: false}
         }
     })
-    updateGridElem(state.nextGrid)
+
+    state.scores = scores
+    render(state.nextGrid)
+
+    // Prepare for next life cycle
     swapActiveGrid()
     state.timer = setTimeout(life, 150);
 }
@@ -157,21 +167,30 @@ function setOwnerOfCell(row,col, countPlayer){
     : ""
 }
 
+// Switching state.activeGrid and state.nextGrid between 1 and 0 using bitwise XOR
 function swapActiveGrid(){
     state.activeGrid = state.activeGrid ^ 1
     state.nextGrid = state.nextGrid ^ 1
 }
 
+/*----- Render Functions -----*/
+
 function updateGridElem(whichGridObj){
     forEachCell((row,col)=>{
         if (gridObj[whichGridObj][row][col].alive === true){
-            cellElem[`${row}-${col}`].dataset.player = gridObj[whichGridObj][row][col].player
+            cellElem[`${row}-${col}`].classList = `cell player-${gridObj[whichGridObj][row][col].player}`
         }
         else{
-            cellElem[`${row}-${col}`].dataset.player = ''
+            cellElem[`${row}-${col}`].classList = 'cell'
         }
     })
 }
+
+function updateScoreboard() {
+    scoreboardElem.innerHTML = `Player 1: ${state.scores[0]} Player 2: ${state.scores[1]}`
+}
+
+/*----- Helper Functions -----*/
 
 function forEachCell(callback){
     for (let row = 0; row < options.gridHeight; row++){
@@ -215,7 +234,10 @@ function sColMax(col) {
     : Math.min(col + 1,options.gridWidth -1)
 }
 
-//Library 
+/*-----  --------------- -----*/
+/*----- Library Functions -----*/
+/*-----  --------------- -----*/
+
 
 function buildLibraryElem(){
 
@@ -243,16 +265,25 @@ function buildLibraryElem(){
     } 
 }
 
+/*----- Library Events -----*/
 
+gridElem.addEventListener('dragover',dragover_handler)
+gridElem.addEventListener('dragenter',dragenter_handler)
+gridElem.addEventListener('dragleave',dragleave_handler)
+gridElem.addEventListener('dragend',dragend_handler)
+gridElem.addEventListener('drop',drop_handler)
 
+state.dragEnterCounter = 0
 
 function dragstart_handler(e){
     state.offsetX = e.offsetX - (cellElem["0-0"].offsetWidth / 2)
     state.offsetY = e.offsetY - (cellElem["0-0"].offsetWidth / 2)
-    state.prevHoveredCell = {row:false,col:false}
+    state.prevHoveredCell = {row:false, col:false}
+    state.patternElm = e.target
     state.hoverPattern = e.target.id
     state.hoverTarget = ""
     state.hoverTargetBounds = {}
+    state.patternElm.classList = 'picked-up pattern'
 }
 
 function dragover_handler(e) {
@@ -260,13 +291,14 @@ function dragover_handler(e) {
     let x = e.clientX - state.offsetX
     let y = e.clientY - state.offsetY
 
+    state.patternElm.classList = 'hover pattern'
     if (state.hoverTarget === "") setHoverTarget(x,y) 
 
     //calculate the bounds of the cell so we don't have to call document.elementFromPoint(x, y) constantly
     // honestly not sure if this is working
     if ((x < state.hoverTargetBounds.left || x > state.hoverTargetBounds.right) ||
         (y < state.hoverTargetBounds.top || y > state.hoverTargetBounds.bottom)) {
-            
+        
         setHoverTarget(x,y) 
     }
     
@@ -278,12 +310,23 @@ function dragover_handler(e) {
     }
 }
 
-function setHoverTarget(x,y) {
-    state.hoverTarget = document.elementFromPoint(x, y)
-    state.hoverTargetBounds.left = state.hoverTarget.offsetLeft
-    state.hoverTargetBounds.right = state.hoverTargetBounds.left + state.hoverTarget.offsetWidth
-    state.hoverTargetBounds.top = state.hoverTarget.offsetTop
-    state.hoverTargetBounds.bottom = state.hoverTargetBounds.top + state.hoverTarget.offsetHeight
+function dragenter_handler(e) {
+    state.dragEnterCounter++
+}
+
+function dragleave_handler(e) {
+    //erase the shadow
+    state.dragEnterCounter--
+    if (state.dragEnterCounter === 0){
+        setHoverShadow(state.prevHoveredCell.row,state.prevHoveredCell.col,libraryContent[state.hoverPattern].coords, true)
+    }
+}
+
+function dragend_handler(e) {
+    //erase the shadow
+    state.dragEnterCounter === 0
+    setHoverShadow(state.prevHoveredCell.row,state.prevHoveredCell.col,libraryContent[state.hoverPattern].coords, true)
+    
 }
 
 function drop_handler(e) {
@@ -293,8 +336,19 @@ function drop_handler(e) {
     placeLibraryItem(row, col, libraryContent[state.hoverPattern].coords)
 
 }
-gridElem.addEventListener('dragover',dragover_handler)
-gridElem.addEventListener('drop',drop_handler)
+
+function setHoverTarget(x,y) {
+    let target = document.elementFromPoint(x, y)
+    if (target.classList.contains('cell')){
+        state.hoverTarget = target
+        state.hoverTargetBounds.left = state.hoverTarget.offsetLeft
+        state.hoverTargetBounds.right = state.hoverTargetBounds.left + state.hoverTarget.offsetWidth
+        state.hoverTargetBounds.top = state.hoverTarget.offsetTop
+        state.hoverTargetBounds.bottom = state.hoverTargetBounds.top + state.hoverTarget.offsetHeight
+    }
+}
+
+
 
 
 function hover(row, col, coords) {
