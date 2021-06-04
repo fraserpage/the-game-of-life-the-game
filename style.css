@@ -13,12 +13,16 @@
                                 "CASL" var(--casl);
     box-sizing: border-box;
 }
-
+strong{
+    --wght: 500
+}
 body{
     font-family: 'Recursive', monospace;
     padding: 3em 5vw;
     margin: 0;
-    height: 100vh;
+    height: 95vh;
+    width: 100vw;
+    overflow-x: hidden;
     display: flex;
     flex-direction: column;
 }
@@ -28,6 +32,12 @@ header{
 }
 header > :last-child{
     margin-left: auto;
+}
+#options{
+    display: none;
+}
+#scoreboard{
+    margin-bottom: 1rem;
 }
 
 input {
@@ -75,25 +85,36 @@ button:active {
 #grid{
     flex: 1;
     display: grid;
+    background-color: black;
 }
 #grid .cell{
-    background-color: pink;
-    border: 1px solid white;
+    background-color: white;
+    border-radius: 2px;
+    transition: all 0.1s;
 }
 #grid .cell.hover,
 #grid .cell:hover{
-    background-color: rgb(248, 161, 176);
+    background-color: rgb(158, 158, 158);
 }
 
 #grid .cell:active{
-    background-color: rgb(223, 98, 119);
+    background-color: rgb(90, 90, 90);
 }
 
-#grid .cell.player-0{
+
+#grid .cell.player-0,
+#grid .cell.player-1{
     background-color: red;
+    color: red;
+    /* border-radius: 3px;
+    box-shadow: 0 0 0 1px; */
+    position: relative;
+    z-index: 1;
+
 }
 #grid .cell.player-1{
     background-color: blue;
+    color: blue
 }
 
 /* Library */
@@ -104,6 +125,11 @@ button:active {
     height: 100vh;
     padding: 4em 2em;
     background-color: black;
+    transition-delay:0.3s;
+    transition: transform 0.2s;
+}
+#library.hide{
+    transform: translateX(100%) ;
 }
 .pattern{
     display: grid;
@@ -116,12 +142,5 @@ button:active {
     transition: all 0.2s;
 }
 .pattern.picked-up{
-    transform: scale(1.1);
-}
-.pattern.picked-up .coord{
-    background-color: teal;
-}
-
-.pattern.hover{
-    background-color: orange;
+    transform: scale(1);
 }
