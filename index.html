@@ -13,32 +13,36 @@
 <body>
     <header>
         <h1>The Game of Life: The Game</h1>
-        <div>
+        <div id="gameplay-btns">
             <button id="start-stop">Go</button>
             <button id="switch-player">Switch Player</button>
             <button id="show-library">Show Library</button>
         </div>
     </header>
     <div id="options">
-        <blockquote>The Game of Life is a cellular automaton devised by the British mathematician John Horton Conway in 1970. It is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input. One interacts with the Game of Life by creating an initial configuration and observing how it evolves. It is Turing complete and can simulate a universal constructor or any other Turing machine.</blockquote>
-        <p>What if Conway's Life were a two player turn based game? I'm honestly not too sure how well it will work but let's try.</p>
-        <p>The gameboard size is determined by your browser width, but you can squeeze some more squares in there by changing their size. Game squares will be approx <input type="number" id="cell-size" value="15" min="10" max="50"> px.</p>
+        <blockquote><a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">The Game of Life</a> is a cellular automaton devised by the British mathematician John Horton Conway in 1970. It is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input. One interacts with the Game of Life by creating an initial configuration and observing how it evolves. It is Turing complete and can simulate a universal constructor or any other Turing machine.</blockquote>
+        <p><strong>But what if Conway's Life were a two player turn based game?</strong> I'm honestly not too sure how well it will work but let's try.</p>
+        <p>I wrote out some proposed rules, but this thing is just fun to play around with so all of the gameplay mechanics are optional. There is a small library of interesting shapes that you can drag and drop onto the board. You can pause the 'life' algorithm by clicking the "Stop" button up top. </p>
+        <p>If you want to try a two player game, my suggestion is to set a limit on the number of pieces each player can place and maybe also set the 'life' algorithm to pause after a number of cycles and take your turns during the break. There's a scoreboard up top. Whoever has the most cells left on the board after all pieces have been placed and the board has stopped mutating wins!</p>
+        <p>If you make a mistake in placing a cell, just click it again to undo it.</p>
+        <p>The gameboard size is determined by your browser width, but you can squeeze some more squares in there by changing their size. <label for="cell-size">Game squares will be approx </label><input type="number" id="cell-size" value="15" min="10" max="50"> px.</p>
         <p>
             <label for="toroidal">Toroidal grid: </label>
-            <input id="toroidal" type="checkbox" checked>
+            <input id="toroidal" type="checkbox" checked><br>
+            <em>(This sort of simulates an infinite grid by wrapping from the top to the bottom, the left to the right.)</em>
         </p>
         <p>
             <label for="highLife">Highlife variant: </label>
             <input id="highLife" type="checkbox" >
             <br>
-            (This is a <a href="https://conwaylife.com/wiki/OCA:HighLife">subtle variant of the classic game of life.</a> John Conway stated: "It seems to me that 'B36/S23'[aka Highlife] is really the game I should have found, since it's so rich in nice things.")
+            <em>(This is a <a href="https://conwaylife.com/wiki/OCA:HighLife">subtle variant of the classic game of life.</a> John Conway stated: "It seems to me that 'B36/S23'[aka Highlife] is really the game I should have found, since it's so rich in nice things.") That said, most of the patterns in the library don't do anything cool with this option on.</em>
         </p>
         <p>
             <label for="cyclesPerTurn">Life cycles per turn (0 for infinite): </label>
             <input id="cyclesPerTurn" type="number" value="0" min="0" max="100000" >
         </p>
         <p>
-            <label for="life-cycle-timing">Timing of lifecycle (ms): </label>
+            <label for="life-cycle-timing">Timing of a lifecycle (ms): </label>
             <input id="life-cycle-timing" type="number" value="100" min="10" max="100000" >
         </p>
         <p>
