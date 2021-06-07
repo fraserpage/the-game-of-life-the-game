@@ -1,22 +1,34 @@
 import { libraryContent } from './library.js'
 
-/*----- constants -----*/ 
-
-/*----- app's state (variables) -----*/ 
+/*----- app state -----*/ 
 let options = {}
 let state = {}
 const gridObj = []
 let cellElem = {}
 
 /*----- cached element references -----*/ 
+// Options
 const optionsElem = document.getElementById('options')
+const cellSizeOptInput = document.getElementById('cell-size')
+const toroidalOptInput = document.getElementById('toroidal')
+const highLifeOptInput = document.getElementById('highLife')
+const cyclesPerTurnOptInput = document.getElementById('cyclesPerTurn')
+const lifeCycleTimingOptInput = document.getElementById('life-cycle-timing')
+const piecesPerPlayerOptInput = document.getElementById('piecesPerPlayer')
+const initBtn = document.getElementById('go')
+
+//Gameplay buttons
+const showLibraryBtn = document.getElementById('show-library')
+const closeLibraryBtn = document.getElementById('close-library')
+const startStopBtn = document.getElementById('start-stop')
+const switchPlayer = document.getElementById('switch-player')
+
+//Elements
 const scoreboardElem = document.getElementById('scoreboard')
+const gridWrapperElem = document.getElementById('grid-wrapper')
 const gridElem = document.getElementById('grid')
 const libraryElem = document.getElementById('library')
-const showLibraryBtn = document.getElementById('show-library')
-const dragHolder = document.getElementById('drag-holder')
-const cycleBtn = document.getElementById('cycle')
-const switchPlayer = document.getElementById('switch-player')
+
 
 /*----- event listeners -----*/ 
 gridElem.addEventListener('click',function(e){
@@ -25,18 +37,18 @@ gridElem.addEventListener('click',function(e){
     }
 });
 
-// Buttons
-
-cycleBtn.addEventListener('click',function(e){
-
-    if (cycleBtn.innerText === "Go"){
-        cycleBtn.innerText = "Stop"
-        life()
+optionsElem.addEventListener('change',function(e){
+    if (e.target.nodeName === "INPUT"){
+        enforceMinMaxInput(e.target)
     }
-    else{
-        cycleBtn.innerText = "Go"
-        clearTimeout(state.timer);
-    }
+})
+
+initBtn.addEventListener('click', function(){
+    init()
+})
+
+startStopBtn.addEventListener('click',function(){
+    startStop()
 });
 
 switchPlayer.addEventListener('click',function(e){
@@ -57,26 +69,28 @@ showLibraryBtn.addEventListener('click',function(e){
 
 /*----- Game Setup Functions -----*/
 
-init()
-
 function init(){
     options = {
-        targetCellSize : 20,
-        toroidal: true
+        targetCellSize : parseInt(cellSizeOptInput.value),
+        toroidal: toroidalOptInput.value,
+        cyclesPerTurn: parseInt(cyclesPerTurnOptInput.value),
+        piecesPerPlayer: parseInt(piecesPerPlayerOptInput.value),
+        highLife: highLifeOptInput.value,
+        lifeCycleTiming: parseInt(lifeCycleTimingOptInput.value)
     }
-    options.gridWidth =  Math.floor( gridElem.clientWidth / options.targetCellSize )
-    options.gridHeight =  Math.floor( gridElem.clientHeight / options.targetCellSize )
-    options.cellSize =  gridElem.clientWidth / options.gridWidth / window.innerWidth * 100
     
     state.currentPlayer = 0
     state.activeGrid = 0
     state.nextGrid = 1
     state.prevHoveredCell
     state.scores = [0,0]
-    state.pieces = [10,10]
+    state.pieces = [options.piecesPerPlayer, options.piecesPerPlayer]
+    state.cycleCount = 0
 
+    setupGameScreen()
     buildGridElem()
     initGridObject()
+    interpretRLE()
     buildLibraryElem()
     render(state.activeGrid)
 }
@@ -84,9 +98,9 @@ function init(){
 function initGridObject(){
     for (let g = 0; g < 2; g++){
         gridObj[g] = []
-        for (let row = 0; row < options.gridHeight; row++){
+        for (let row = 0; row < state.gridHeight; row++){
             gridObj[g][row] = []
-            for (let col = 0; col < options.gridWidth; col++){
+            for (let col = 0; col < state.gridWidth; col++){
                 gridObj[g][row][col] = {alive: false}
                 cellElem[`${row}-${col}`] = document.getElementById(`s-${row}-${col}`)
             }
@@ -104,8 +118,8 @@ function buildGridElem(){
         cell.className = 'cell'
         gridElem.appendChild(cell)
     })
-    gridElem.style.gridTemplateColumns = `repeat(${options.gridWidth}, ${options.cellSize}vw)`
-    gridElem.style.gridTemplateRows = `repeat(${options.gridHeight}, ${options.cellSize}vw)`
+    gridElem.style.gridTemplateColumns = `repeat(${state.gridWidth}, ${state.cellSize}vw)`
+    gridElem.style.gridTemplateRows = `repeat(${state.gridHeight}, ${state.cellSize}vw)`
     gridElem.style.flex = "unset"
 }
 
@@ -114,7 +128,39 @@ function render(grid){
     updateScoreboard() 
 }
 
+/*----- Options Screen Functions -----*/
+
+function setupGameScreen(){
+    optionsElem.style.display = 'none'
+    scoreboardElem.style.display = 'block'
+    gridWrapperElem.style.display = 'flex'
+
+    state.gridWidth =  Math.floor( gridElem.clientWidth / options.targetCellSize )
+    state.gridHeight =  Math.floor( gridElem.clientHeight / options.targetCellSize )
+    state.cellSize =  gridElem.clientWidth / state.gridWidth / window.innerWidth * 100
+}
+
+function enforceMinMaxInput(input){
+    if (parseInt(input.value) > input.max){
+        input.value = input.max
+    }
+    else if (parseInt(input.value) < input.min){
+        input.value = input.min
+    }
+}
+
 /*----- Player Action Functions -----*/
+
+function startStop(){
+    if (startStopBtn.innerText === "Go"){
+        startStopBtn.innerText = "Stop"
+        life()
+    }
+    else{
+        startStopBtn.innerText = "Go"
+        clearTimeout(state.timer);
+    }
+}
 
 function clickOnCell(cell){
     let col = parseInt(cell.dataset.col)
@@ -124,7 +170,7 @@ function clickOnCell(cell){
 }
 
 function addCellToBoardObj(row,col){
-    if (state.pieces[state.currentPlayer] > 0){
+    if (state.pieces[state.currentPlayer] > 0 || options.piecesPerPlayer === 0){
         if (gridObj[state.activeGrid][row][col].alive === false){
             gridObj[state.activeGrid][row][col] = {alive: true, player: state.currentPlayer, new: true}
             state.scores[state.currentPlayer]++
@@ -155,6 +201,10 @@ function life(){
             if (surroundingCell.player === 1) countPlayer[1]++
         })
 
+        let comesToLife = options.highLife ? 
+            gridObj[state.activeGrid][row][col].alive === false && (countLife === 3 || countLife === 6 )
+            : gridObj[state.activeGrid][row][col].alive === false && (countLife === 3)
+
         // cell is alive, it stays alive if it has either 2 or 3 live neighbors
         if (gridObj[state.activeGrid][row][col].alive === true && (countLife === 2 || countLife === 3)){
             gridObj[state.nextGrid][row][col] = {alive: true}
@@ -162,7 +212,7 @@ function life(){
             scores[gridObj[state.nextGrid][row][col].player]++
         }
         // cell is dead, it comes to life if it has 3 live neighbors
-        else if (gridObj[state.activeGrid][row][col].alive === false && countLife === 3){
+        else if (comesToLife){
             gridObj[state.nextGrid][row][col] = {alive: true}
             setOwnerOfCell(row,col,countPlayer)
             scores[gridObj[state.nextGrid][row][col].player]++
@@ -177,7 +227,11 @@ function life(){
 
     // Prepare for next life cycle
     swapActiveGrid()
-    state.timer = setTimeout(life, 150);
+    state.cycleCount++
+    if (state.cycleCount < options.cyclesPerTurn  || options.cyclesPerTurn === 0){
+        state.timer = setTimeout(life, options.lifeCycleTiming);
+    }
+    
 }
 
 function setOwnerOfCell(row,col, countPlayer){
@@ -216,8 +270,8 @@ function updateScoreboard() {
 /*----- Helper Functions -----*/
 
 function forEachCell(callback){
-    for (let row = 0; row < options.gridHeight; row++){
-        for (let col = 0; col < options.gridWidth; col++){
+    for (let row = 0; row < state.gridHeight; row++){
+        for (let col = 0; col < state.gridWidth; col++){
             callback(row,col)
         }
     }
@@ -229,10 +283,10 @@ function forEachSurroundingCell(row, col, callback){
             if ( r === row && c === col ) continue
             let sR = r
             let sC = c
-            if ( sR === -1 ) sR = options.gridHeight - 1
-            if ( sC === -1 ) sC = options.gridWidth - 1
-            if ( sR === options.gridHeight ) sR = 0
-            if ( sC === options.gridWidth ) sC = 0
+            if ( sR === -1 ) sR = state.gridHeight - 1
+            if ( sC === -1 ) sC = state.gridWidth - 1
+            if ( sR === state.gridHeight ) sR = 0
+            if ( sC === state.gridWidth ) sC = 0
             callback(sR,sC)
         }
     }   
@@ -244,7 +298,7 @@ function sRowMin(row) {
 }
 function sRowMax(row) {
     return options.toroidal ? row + 1
-    : Math.min(row + 1, options.gridHeight - 1)
+    : Math.min(row + 1, state.gridHeight - 1)
 }
 function sColMin(col) {
     return options.toroidal ? col - 1
@@ -252,8 +306,9 @@ function sColMin(col) {
 }
 function sColMax(col) {
     return options.toroidal ? col + 1
-    : Math.min(col + 1,options.gridWidth -1)
+    : Math.min(col + 1,state.gridWidth -1)
 }
+
 
 /*-----  --------------- -----*/
 /*----- Library Functions -----*/
@@ -261,31 +316,34 @@ function sColMax(col) {
 
 
 function buildLibraryElem(){
-
-    for (let pattern in libraryContent){
-        let patternElm = document.createElement("div")
-        patternElm.id = pattern
-        patternElm.className = "pattern"
-        patternElm.style.gridTemplateColumns = `repeat(${libraryContent[pattern].width}, ${options.cellSize}vw)`
-        patternElm.style.gridTemplateRows = `repeat(${libraryContent[pattern].height}, ${options.cellSize}vw)`
-        patternElm.draggable = true
-        patternElm.addEventListener("dragstart", dragstart_handler);
-        // patternElm.addEventListener("mousedown", mousedownPattern);
-        // patternElm.addEventListener("mousemove", mousemovePattern);
-
-        let grid = []
-        for (let row = 0; row < libraryContent[pattern].height; row++){
-            grid[row] = []
-            for (let col = 0; col < libraryContent[pattern].width; col++){
-                grid[row][col] = document.createElement("div")
-                patternElm.appendChild(grid[row][col])
-            }
-        }
-        for (let coord of libraryContent[pattern].coords){
-            grid[coord[0]][coord[1]].className = "coord"
-        }
-        libraryElem.appendChild(patternElm)
+    for(let pattern in libraryContent){
+        buildPattern(libraryContent[pattern], pattern)
     } 
+}
+
+function buildPattern(pattern, id){
+    let patternElm = document.createElement("div")
+    patternElm.id = id
+    patternElm.className = "pattern"
+    patternElm.style.gridTemplateColumns = `repeat(${pattern.width}, ${state.cellSize}vw)`
+    patternElm.style.gridTemplateRows = `repeat(${pattern.height}, ${state.cellSize}vw)`
+    patternElm.draggable = true
+    patternElm.addEventListener("dragstart", dragstart_handler);
+    // patternElm.addEventListener("mousedown", mousedownPattern);
+    // patternElm.addEventListener("mousemove", mousemovePattern);
+
+    let grid = []
+    for (let row = 0; row < pattern.height; row++){
+        grid[row] = []
+        for (let col = 0; col < pattern.width; col++){
+            grid[row][col] = document.createElement("div")
+            patternElm.appendChild(grid[row][col])
+        }
+    }
+    for (let coord of pattern.coords){
+        grid[coord[0]][coord[1]].className = "coord"
+    }
+    libraryElem.appendChild(patternElm)
 }
 
 /*----- Library Events -----*/
@@ -297,24 +355,6 @@ gridElem.addEventListener('dragend',dragend_handler)
 gridElem.addEventListener('drop',drop_handler)
 
 state.dragEnterCounter = 0
-let node 
-function mousedownPattern(e) {
-    console.log(e)
-    let pattern = e.path[1]
-    node = pattern.cloneNode(true)
-    node.style.position = 'absolute'
-    node.style.top = e.clientY - e.offsetY+"px"
-    node.style.left = e.clientX - e.offsetX+"px"
-    dragHolder.innerHTML = ""
-    dragHolder.appendChild(node)
-}
-
-function mousemovePattern(e) {
-    // console.log(e)
-
-    node.style.top = e.clientY+"px"
-    node.style.left = e.clientX+"px"
-}
 
 function dragstart_handler(e){
     state.offsetX = e.offsetX - (cellElem["0-0"].offsetWidth / 2)
@@ -382,17 +422,16 @@ function drop_handler(e) {
 
 function setHoverTarget(x,y) {
     let target = document.elementFromPoint(x, y)
-    if (target.classList.contains('cell')){
-        state.hoverTarget = target
-        state.hoverTargetBounds.left = state.hoverTarget.offsetLeft
-        state.hoverTargetBounds.right = state.hoverTargetBounds.left + state.hoverTarget.offsetWidth
-        state.hoverTargetBounds.top = state.hoverTarget.offsetTop
-        state.hoverTargetBounds.bottom = state.hoverTargetBounds.top + state.hoverTarget.offsetHeight
+    if (target !== null){
+        if (target.classList.contains('cell')){
+            state.hoverTarget = target
+            state.hoverTargetBounds.left = state.hoverTarget.offsetLeft
+            state.hoverTargetBounds.right = state.hoverTargetBounds.left + state.hoverTarget.offsetWidth
+            state.hoverTargetBounds.top = state.hoverTarget.offsetTop
+            state.hoverTargetBounds.bottom = state.hoverTargetBounds.top + state.hoverTarget.offsetHeight
+        }
     }
 }
-
-
-
 
 function hover(row, col, coords) {
     if (state.prevHoveredCell.row !== row || state.prevHoveredCell.col !== col){
@@ -439,8 +478,68 @@ function forEachCoord(row,col,coords, callback) {
     for (let coord of coords){
         let refRow = coord[0] + row
         let refCol = coord[1] + col
-        if (refRow < options.gridHeight && refCol < options.gridWidth){
+        if (refRow < state.gridHeight && refCol < state.gridWidth){
             callback(refRow,refCol)
         }
     }
 }
+
+
+// RLE interpreter
+
+function interpretRLE(){
+    let rle = 
+`!Name: Gosper glider gun
+!Author: Bill Gosper
+!The first known gun and the first known finite pattern with unbounded growth.
+!www.conwaylife.com/wiki/index.php?title=Gosper_glider_gun
+........................O
+......................O.O
+............OO......OO............OO
+...........O...O....OO............OO
+OO........O.....O...OO
+OO........O...O.OO....O.O
+..........O.....O.......O
+...........O...O
+............OO`
+    
+    let nameSearch = new RegExp("!Name: (.+)")
+    let AuthorSearch = new RegExp("Author: (.+)")
+    let commentSearch = new RegExp("!([^Name:|^Author:].+)","gm")
+    let patternLinesSearch = new RegExp("^[.|O]+","gm")
+    
+    // let name = nameSearch.exec(rle)[1]
+    let name = rle.match(nameSearch)[1]
+    let id = name.toLowerCase()
+    let author = rle.match(AuthorSearch)[1]
+    let comments = [...rle.matchAll(commentSearch)]
+    let pattern = [...rle.matchAll(patternLinesSearch)]
+
+    for (let comment of comments){
+        // console.log(comment[1])
+    }
+    let coords = []
+    let width = 0
+    for (let row = 0; row < pattern.length; row++){
+        let cells = pattern[row][0].split('')
+        for (let col = 0; col < cells.length; col++){
+            if (cells[col] === "O"){
+                coords.push([row,col])
+            }
+            if (cells.length > width) width = cells.length
+        }
+    }
+
+    libraryContent[id] = {
+        name: name,
+        coords: coords,
+        height: pattern.length,
+        width: width,
+    }
+
+    // console.log(libraryContent)
+}
+
+
+
+// buildLibraryElem()

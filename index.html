@@ -14,7 +14,7 @@
     <header>
         <h1>The Game of Life: The Game</h1>
         <div>
-            <button id="cycle">Go</button>
+            <button id="start-stop">Go</button>
             <button id="switch-player">Switch Player</button>
             <button id="show-library">Show Library</button>
         </div>
@@ -22,13 +22,41 @@
     <div id="options">
         <blockquote>The Game of Life is a cellular automaton devised by the British mathematician John Horton Conway in 1970. It is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input. One interacts with the Game of Life by creating an initial configuration and observing how it evolves. It is Turing complete and can simulate a universal constructor or any other Turing machine.</blockquote>
         <p>What if Conway's Life were a two player turn based game? I'm honestly not too sure how well it will work but let's try.</p>
-        <p>The gameboard size is determined by your browser width, but you can squeeze some more squares in there by changing their size. Game squares will be approx <input id="cell-size" > px.</p>
+        <p>The gameboard size is determined by your browser width, but you can squeeze some more squares in there by changing their size. Game squares will be approx <input type="number" id="cell-size" value="20" min="10" max="50"> px.</p>
+        <p>
+            <label for="toroidal">Toroidal grid: </label>
+            <input id="toroidal" type="checkbox" checked>
+        </p>
+        <p>
+            <label for="highLife">Highlife: </label>
+            <input id="highLife" type="checkbox" >
+        </p>
+        <p>
+            <label for="cyclesPerTurn">Life cycles per turn: </label>
+            <input id="cyclesPerTurn" type="number" value="10" min="0" max="100000" >
+        </p>
+        <p>
+            <label for="life-cycle-timing">Timing of lifecycle (ms): </label>
+            <input id="life-cycle-timing" type="number" value="150" min="10" max="100000" >
+        </p>
+        <p>
+            <label for="piecesPerPlayer">Pieces per player: </label>
+            <input id="piecesPerPlayer" type="number" value="10" min="0" max="100000">
+        </p>
+        <button id="go">Lets go!</button>
     </div>
-    <div id="scoreboard"></div>
+    <div id="scoreboard">
+        <strong>Player 1's turn</strong> <br>
+        <strong>Scores</strong>
+        Player 1: 0 Player 2: 0 <br>
+        <strong>Pieces to place:</strong>
+        Player 1: 0 Player 2: 0</div>
     <div id="grid-wrapper">
         <div id="grid"></div>
     </div>
-    <div id="library" class="hide"></div>
+    <div id="library" class="hide">
+        <button id="close-library">Close</button>
+    </div>
     <div id="drag-holder"></div>
 </body>
 </html>

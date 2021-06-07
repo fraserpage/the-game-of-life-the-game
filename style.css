@@ -20,9 +20,9 @@ body{
     font-family: 'Recursive', monospace;
     padding: 3em 5vw;
     margin: 0;
-    height: 92vh;
+    height: 100vh;
     width: 100vw;
-    overflow-x: hidden;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
 }
@@ -33,9 +33,7 @@ header{
 header > :last-child{
     margin-left: auto;
 }
-#options{
-    display: none;
-}
+
 #scoreboard{
     margin-bottom: 1rem;
 }
@@ -74,6 +72,8 @@ button:active {
 
 
 /* Gameboard grid */
+
+
 
 #grid-wrapper{
     flex: 1;
@@ -120,10 +120,13 @@ button:active {
 
 /* Library */
 #library{
+    z-index: 1;
     position: absolute;
     top:0;
     right: 0;
     height: 100vh;
+    width: 40vw;
+    min-width: 400px;
     padding: 4em 2em;
     background-color: black;
     transition-delay:0.3s;
@@ -135,6 +138,7 @@ button:active {
 .pattern{
     display: grid;
     transition: all 0.2s;
+    margin-bottom: 3rem;
 }
 .pattern .coord{
     background-color: white;
@@ -144,4 +148,9 @@ button:active {
 }
 .pattern.picked-up{
     transform: scale(1);
+}
+
+#grid-wrapper,
+#scoreboard{
+    display: none;
 }
