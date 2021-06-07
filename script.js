@@ -32,6 +32,7 @@ const libraryElem = document.getElementById('library')
 
 
 /*----- event listeners -----*/ 
+
 gridElem.addEventListener('click',(e)=>{
     if(e.target.classList.contains('cell')){
         clickOnCell(e.target)
@@ -69,6 +70,13 @@ closeLibraryBtn.addEventListener('click',()=>{
     libraryElem.classList.add('hide')
 })
 
+// Library drag events
+gridElem.addEventListener('dragover',dragover_handler)
+gridElem.addEventListener('dragenter',dragenter_handler)
+gridElem.addEventListener('dragleave',dragleave_handler)
+gridElem.addEventListener('dragend',dragend_handler)
+gridElem.addEventListener('drop',drop_handler)
+
 /*----- Game Setup Functions -----*/
 
 function init(){
@@ -88,6 +96,7 @@ function init(){
     state.scores = [0,0]
     state.pieces = [options.piecesPerPlayer, options.piecesPerPlayer]
     state.cycleCount = 0
+    state.dragEnterCounter = 0
 
     setupGameScreen()
     buildGridElem()
@@ -202,7 +211,8 @@ function life(){
             if (surroundingCell.player === 0) countPlayer[0]++
             if (surroundingCell.player === 1) countPlayer[1]++
         })
-
+        
+        // set come to life condition to allow switching to highlife algo
         let comesToLife = options.highLife ? 
             gridObj[state.activeGrid][row][col].alive === false && (countLife === 3 || countLife === 6 )
             : gridObj[state.activeGrid][row][col].alive === false && (countLife === 3)
@@ -278,6 +288,7 @@ function displayPiecesPerPlayer(){
        <strong>Pieces to place:</strong>
        Player 1: ${state.pieces[0]} Player 2: ${state.pieces[1]}`
 }
+
 /*----- Helper Functions -----*/
 
 function forEachCell(callback){
@@ -398,17 +409,10 @@ function buildPattern(pattern, id){
     libraryElem.appendChild(patternElm)
 }
 
+// Helper function to convert a string to kebab case from: https://gist.github.com/thevangelist/8ff91bac947018c9f3bfaad6487fa149
 const kebabCase = string => string.replace(/([a-z])([A-Z])/g, '$1-$2').replace(/\s+/g, '-').toLowerCase()
 
 /*----- Library Events -----*/
-
-gridElem.addEventListener('dragover',dragover_handler)
-gridElem.addEventListener('dragenter',dragenter_handler)
-gridElem.addEventListener('dragleave',dragleave_handler)
-gridElem.addEventListener('dragend',dragend_handler)
-gridElem.addEventListener('drop',drop_handler)
-
-state.dragEnterCounter = 0
 
 function dragstart_handler(e){
     state.offsetX = e.offsetX - (cellElem["0-0"].offsetWidth / 2)
@@ -474,6 +478,7 @@ function drop_handler(e) {
 
 }
 
+//Hovering a library item over the board
 function setHoverTarget(x,y) {
     let target = document.elementFromPoint(x, y)
     if (target !== null){
@@ -510,6 +515,7 @@ function setHoverShadow(row,col,coords, erase){
     })
 }
 
+// Placing a library item on the board
 function placeLibraryItem(row,col, coords){
     forEachCoord(row,col,coords, (refRow,refCol)=>{
         addCellToBoardObj(refRow, refCol)
