@@ -16,6 +16,10 @@
 strong{
     --wght: 500
 }
+em{
+    --slnt: -10;
+    font-size: 90%
+}
 body{
     font-family: 'Recursive', monospace;
     padding: 3em 5vw;
@@ -39,7 +43,7 @@ header > :last-child{
 }
 
 input {
-    width: 3em;
+    min-width: 3em;
     text-align: right;
     border: none;
     border-bottom: 1px solid;
@@ -49,6 +53,7 @@ input {
     display: inline-block;
 }
 button {
+    user-select: none;
     background: black;
     color: white;
     font-family: 'Recursive';
@@ -68,13 +73,21 @@ button:active {
     background: yellow;
     color: black;
 }
-
+button#close-library {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    border: 1px solid;
+    user-select: none;
+}
+blockquote {
+    border-left: 3px solid;
+    margin: 0;
+    padding-left: 1.5rem;
+}
 
 
 /* Gameboard grid */
-
-
-
 #grid-wrapper{
     flex: 1;
     margin: -5vw;
@@ -125,20 +138,31 @@ button:active {
     top:0;
     right: 0;
     height: 100vh;
+    overflow:hidden auto;
     width: 40vw;
     min-width: 400px;
     padding: 4em 2em;
     background-color: black;
     transition-delay:0.3s;
     transition: transform 0.2s;
+    color: white;
 }
 #library.hide{
     transform: translateX(100%) ;
 }
+#library a,
+#library a:visited,
+#library a:hover,
+#library a:active{
+    color: white;
+}
 .pattern{
     display: grid;
     transition: all 0.2s;
+    margin-top: 1rem;
     margin-bottom: 3rem;
+    max-width: 100%;
+    overflow: scroll;
 }
 .pattern .coord{
     background-color: white;
@@ -151,6 +175,7 @@ button:active {
 }
 
 #grid-wrapper,
-#scoreboard{
+#scoreboard,
+#gameplay-btns{
     display: none;
 }
