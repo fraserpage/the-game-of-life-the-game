@@ -19,13 +19,19 @@ We will assign a color to cells created by each user and add a new rule: cells t
 
 The board size will be determined by the viewport size. A bigger window, a bigger board. Why not?
 
-To start, the board is divided into halves and each player places their pieces on their half of the board. While they are placing their pieces, the other half of the board is hidden so that player 2 doesn't get an unfair advantage. 
+The 'game' is very configurable, but here's a suggested way to play:
 
-The game is then allowed to run for a number of cycles (this number is configurable in game settings) after which the players get to place more pieces, this time anywhere on the board. Player 1's moves are again hidden from player 2 while player 2 places their pieces. If players have placed pieces on the same square, they cancel each other out. 
+Each player is alloted a certain number of pieces to place. They take turns putting as few or as many of them onto the board as they wish to start with and then click the 'Go' button to start the life process up.
 
-Players have a fixed number of pieces they may place (a game setting). They may place as many or as few as they like on each turn. When neither player has any pieces left the game runs for a final cycle and then ends. The player with the most pieces remaining is the winner. 
+The game is then allowed to run for a number of cycles (this number is configurable in game settings) after which the players get to place more pieces.
+
+When neither player has any pieces left the game runs for a final cycle and then ends. The player with the most pieces remaining is the winner. 
 
 ## [Play it here](https://fraserpage.github.io/the-game-of-life-the-game/)
+
+## Screenshot
+<img src="docs/screenshot.png">
+
 
 ## Mockup - Draft 1
 <img src="docs/mockup.png">
@@ -66,10 +72,10 @@ The following based on game settings
 * Update message board
 
 ## Road map
-- [ ] v1 - Implement Conway's Life algorithm in single player mode. I want to try to figure this out on my own. 
+- [x] v1 - Implement Conway's Life algorithm in single player mode. I want to try to figure this out on my own. 
 - [ ] v1.1 - I know there are more efficient ways to implement the algorithm than I am likely to arrive at on my own, so after getting my own working, do some research and upgrade it to an efficient algorithm.
     - [ ] Consider stretch goal of allowing for alternate cellular automata rules when designing algorithm. Can this flexibility be coded in? Logic is interpreted from an object 
-- [ ] v.1.5 - Two player mode, single turn mode
+- [x] v.1.5 - Two player mode, single turn mode
 - [ ] v.2 - Two player mode, turn based
 
 ### Nice to have features
