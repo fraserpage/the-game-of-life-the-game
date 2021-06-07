@@ -1,10 +1,11 @@
-import { libraryContent, txtPatternLibrary } from './library.js'
+import {txtPatternLibrary } from './library.js'
 
 /*----- app state -----*/ 
 let options = {}
 let state = {}
 const gridObj = []
 let cellElem = {}
+const libraryContent = {}
 
 /*----- cached element references -----*/ 
 // Options

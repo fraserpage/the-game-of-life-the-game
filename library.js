@@ -1,20 +1,12 @@
-export const libraryContent = {
-    "r-pentomino": {
-        url: "https://conwaylife.com/wiki/R-pentomino",
-        name: "R-pentomino",
-        coords: [
-            [0,1],
-            [0,2],
-            [1,0],
-            [1,1],
-            [2,1]
-        ],
-        height: 3,
-        width: 3,
-    }
-}
 
 export const txtPatternLibrary = [ 
+`!Name: R-pentomino
+!The most active polyomino with less than six cells; all of the others stabilize in at most 10 generations, but the R-pentomino does not do so until generation 1103, by which time it has a population of 116.
+!URL: https://conwaylife.com/wiki/R-pentomino
+.OO
+OO
+.O`,
+
 
 `!Name: Toaster
 !Author: Dean Hickerson

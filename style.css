@@ -15,7 +15,7 @@
 }
 body{
     font-family: 'Recursive', monospace;
-    padding: 3em 5vw;
+    padding: 3em 5vw 0;
     margin: 0;
     height: 100vh;
     width: 100vw;
@@ -90,7 +90,7 @@ button:active {
 button#close-library {
     position: fixed;
     top: 1rem;
-    right: 1rem;
+    right: 2rem;
     border: 1px solid;
     user-select: none;
 }
@@ -98,13 +98,16 @@ button#close-library {
 /* Gameboard grid */
 #grid-wrapper{
     flex: 1;
-    margin: -5vw;
-    padding: 5vw;
+    margin: 1rem -5vw 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
 }
 #grid{
     flex: 1;
+    width: 100%;
+    justify-self: center;
+    align-self: center;
     display: grid;
     background-color: black;
     border: 1px solid white;
@@ -170,7 +173,7 @@ button#close-library {
     margin-top: 1rem;
     margin-bottom: 3rem;
     max-width: 100%;
-    overflow: scroll;
+    overflow: auto;
 }
 .pattern .coord{
     background-color: white;
