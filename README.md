@@ -72,6 +72,7 @@ The following based on game settings
 * Update message board
 
 ## Road map
+- [ ] Allow user to add own pattern files
 - [x] v1 - Implement Conway's Life algorithm in single player mode. I want to try to figure this out on my own. 
 - [ ] v1.1 - I know there are more efficient ways to implement the algorithm than I am likely to arrive at on my own, so after getting my own working, do some research and upgrade it to an efficient algorithm.
     - [ ] Consider stretch goal of allowing for alternate cellular automata rules when designing algorithm. Can this flexibility be coded in? Logic is interpreted from an object 
