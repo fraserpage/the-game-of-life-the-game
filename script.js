@@ -56,6 +56,7 @@ switchPlayer.addEventListener('click',function(e){
     render(state.activeGrid)
 });
 
+//Library buttons
 showLibraryBtn.addEventListener('click',function(e){
     if (showLibraryBtn.innerText === "Show Library"){
         showLibraryBtn.innerText = "Hide Library"
@@ -66,16 +67,20 @@ showLibraryBtn.addEventListener('click',function(e){
         libraryElem.classList.add('hide')
     }
 });
+closeLibraryBtn.addEventListener('click',function(){
+    showLibraryBtn.innerText = "Show Library"
+    libraryElem.classList.add('hide')
+})
 
 /*----- Game Setup Functions -----*/
 
 function init(){
     options = {
         targetCellSize : parseInt(cellSizeOptInput.value),
-        toroidal: toroidalOptInput.value,
+        toroidal: toroidalOptInput.checked,
         cyclesPerTurn: parseInt(cyclesPerTurnOptInput.value),
         piecesPerPlayer: parseInt(piecesPerPlayerOptInput.value),
-        highLife: highLifeOptInput.value,
+        highLife: highLifeOptInput.checked,
         lifeCycleTiming: parseInt(lifeCycleTimingOptInput.value)
     }
     
@@ -230,6 +235,9 @@ function life(){
     state.cycleCount++
     if (state.cycleCount < options.cyclesPerTurn  || options.cyclesPerTurn === 0){
         state.timer = setTimeout(life, options.lifeCycleTiming);
+    }
+    else{
+        state.cycleCount = options.cyclesPerTurn
     }
     
 }

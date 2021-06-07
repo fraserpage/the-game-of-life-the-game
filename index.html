@@ -22,26 +22,28 @@
     <div id="options">
         <blockquote>The Game of Life is a cellular automaton devised by the British mathematician John Horton Conway in 1970. It is a zero-player game, meaning that its evolution is determined by its initial state, requiring no further input. One interacts with the Game of Life by creating an initial configuration and observing how it evolves. It is Turing complete and can simulate a universal constructor or any other Turing machine.</blockquote>
         <p>What if Conway's Life were a two player turn based game? I'm honestly not too sure how well it will work but let's try.</p>
-        <p>The gameboard size is determined by your browser width, but you can squeeze some more squares in there by changing their size. Game squares will be approx <input type="number" id="cell-size" value="20" min="10" max="50"> px.</p>
+        <p>The gameboard size is determined by your browser width, but you can squeeze some more squares in there by changing their size. Game squares will be approx <input type="number" id="cell-size" value="15" min="10" max="50"> px.</p>
         <p>
             <label for="toroidal">Toroidal grid: </label>
             <input id="toroidal" type="checkbox" checked>
         </p>
         <p>
-            <label for="highLife">Highlife: </label>
+            <label for="highLife">Highlife variant: </label>
             <input id="highLife" type="checkbox" >
+            <br>
+            (This is a <a href="https://conwaylife.com/wiki/OCA:HighLife">subtle variant of the classic game of life.</a> John Conway stated: "It seems to me that 'B36/S23'[aka Highlife] is really the game I should have found, since it's so rich in nice things.")
         </p>
         <p>
-            <label for="cyclesPerTurn">Life cycles per turn: </label>
-            <input id="cyclesPerTurn" type="number" value="10" min="0" max="100000" >
+            <label for="cyclesPerTurn">Life cycles per turn (0 for infinite): </label>
+            <input id="cyclesPerTurn" type="number" value="0" min="0" max="100000" >
         </p>
         <p>
             <label for="life-cycle-timing">Timing of lifecycle (ms): </label>
-            <input id="life-cycle-timing" type="number" value="150" min="10" max="100000" >
+            <input id="life-cycle-timing" type="number" value="100" min="10" max="100000" >
         </p>
         <p>
-            <label for="piecesPerPlayer">Pieces per player: </label>
-            <input id="piecesPerPlayer" type="number" value="10" min="0" max="100000">
+            <label for="piecesPerPlayer">Pieces per player (0 for infinite): </label>
+            <input id="piecesPerPlayer" type="number" value="0" min="0" max="100000">
         </p>
         <button id="go">Lets go!</button>
     </div>
