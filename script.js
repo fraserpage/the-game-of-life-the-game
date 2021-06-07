@@ -1,4 +1,4 @@
-import { libraryContent } from './library.js'
+import { libraryContent, txtPatternLibrary } from './library.js'
 
 /*----- app state -----*/ 
 let options = {}
@@ -24,6 +24,7 @@ const startStopBtn = document.getElementById('start-stop')
 const switchPlayer = document.getElementById('switch-player')
 
 //Elements
+const gameplayBtnsElem = document.getElementById('gameplay-btns')
 const scoreboardElem = document.getElementById('scoreboard')
 const gridWrapperElem = document.getElementById('grid-wrapper')
 const gridElem = document.getElementById('grid')
@@ -31,33 +32,29 @@ const libraryElem = document.getElementById('library')
 
 
 /*----- event listeners -----*/ 
-gridElem.addEventListener('click',function(e){
+gridElem.addEventListener('click',(e)=>{
     if(e.target.classList.contains('cell')){
         clickOnCell(e.target)
     }
 });
 
-optionsElem.addEventListener('change',function(e){
+optionsElem.addEventListener('change',(e)=>{
     if (e.target.nodeName === "INPUT"){
         enforceMinMaxInput(e.target)
     }
 })
 
-initBtn.addEventListener('click', function(){
-    init()
-})
+initBtn.addEventListener('click', init)
 
-startStopBtn.addEventListener('click',function(){
-    startStop()
-});
+startStopBtn.addEventListener('click', startStop );
 
-switchPlayer.addEventListener('click',function(e){
+switchPlayer.addEventListener('click',()=>{
     state.currentPlayer = state.currentPlayer ^ 1
     render(state.activeGrid)
 });
 
 //Library buttons
-showLibraryBtn.addEventListener('click',function(e){
+showLibraryBtn.addEventListener('click',()=>{
     if (showLibraryBtn.innerText === "Show Library"){
         showLibraryBtn.innerText = "Hide Library"
         libraryElem.classList.remove('hide')
@@ -67,7 +64,7 @@ showLibraryBtn.addEventListener('click',function(e){
         libraryElem.classList.add('hide')
     }
 });
-closeLibraryBtn.addEventListener('click',function(){
+closeLibraryBtn.addEventListener('click',()=>{
     showLibraryBtn.innerText = "Show Library"
     libraryElem.classList.add('hide')
 })
@@ -95,7 +92,6 @@ function init(){
     setupGameScreen()
     buildGridElem()
     initGridObject()
-    interpretRLE()
     buildLibraryElem()
     render(state.activeGrid)
 }
@@ -139,6 +135,7 @@ function setupGameScreen(){
     optionsElem.style.display = 'none'
     scoreboardElem.style.display = 'block'
     gridWrapperElem.style.display = 'flex'
+    gameplayBtnsElem.style.display = 'block'
 
     state.gridWidth =  Math.floor( gridElem.clientWidth / options.targetCellSize )
     state.gridHeight =  Math.floor( gridElem.clientHeight / options.targetCellSize )
@@ -237,7 +234,8 @@ function life(){
         state.timer = setTimeout(life, options.lifeCycleTiming);
     }
     else{
-        state.cycleCount = options.cyclesPerTurn
+        state.cycleCount = 0
+        startStopBtn.innerText = "Go"
     }
     
 }
@@ -271,10 +269,15 @@ function updateScoreboard() {
     scoreboardElem.innerHTML = `<strong>Player ${state.currentPlayer + 1}'s turn</strong> <br>
                                 <strong>Scores</strong>
                                 Player 1: ${state.scores[0]} Player 2: ${state.scores[1]} <br>
-                                <strong>Pieces to place:</strong>
-                                Player 1: ${state.pieces[0]} Player 2: ${state.pieces[1]}`
+                                ${displayPiecesPerPlayer()}`
 }
 
+function displayPiecesPerPlayer(){
+    return options.piecesPerPlayer === 0 ? ""
+    : `
+       <strong>Pieces to place:</strong>
+       Player 1: ${state.pieces[0]} Player 2: ${state.pieces[1]}`
+}
 /*----- Helper Functions -----*/
 
 function forEachCell(callback){
@@ -317,19 +320,61 @@ function sColMax(col) {
     : Math.min(col + 1,state.gridWidth -1)
 }
 
-
 /*-----  --------------- -----*/
 /*----- Library Functions -----*/
 /*-----  --------------- -----*/
 
 
 function buildLibraryElem(){
+    for(let pattern = 0; pattern < txtPatternLibrary.length; pattern++){
+
+        interpretTxtPattern(txtPatternLibrary[pattern])
+    }
     for(let pattern in libraryContent){
         buildPattern(libraryContent[pattern], pattern)
     } 
 }
 
+function interpretTxtPattern(txtPattern){
+
+    let nameSearch = new RegExp("!Name: (.+)")
+    let urlSearch = new RegExp("!URL: (.+)")
+    let patternLinesSearch = new RegExp("^[.|O]+","gm")
+    
+    let name = txtPattern.match(nameSearch)
+    name ? name = name[1] : name = ""
+    let id = kebabCase(name)
+    let url = txtPattern.match(urlSearch)
+    url ? url = url[1] : ""
+    let pattern = [...txtPattern.matchAll(patternLinesSearch)]
+
+    let coords = []
+    let width = 0
+    for (let row = 0; row < pattern.length; row++){
+        let cells = pattern[row][0].split('')
+        for (let col = 0; col < cells.length; col++){
+            if (cells[col] === "O"){
+                coords.push([row,col])
+            }
+            if (cells.length > width) width = cells.length
+        }
+    }
+
+    libraryContent[id] = {
+        name: name,
+        coords: coords,
+        url: url,
+        height: pattern.length,
+        width: width,
+    }
+}
+
+// Takes a libraryElement pattern object and adds it to the Library DOM element
 function buildPattern(pattern, id){
+    let label = document.createElement("a")
+    label.innerText = pattern.name
+    label.href = pattern.url
+    label.target = "_blank"
     let patternElm = document.createElement("div")
     patternElm.id = id
     patternElm.className = "pattern"
@@ -337,8 +382,6 @@ function buildPattern(pattern, id){
     patternElm.style.gridTemplateRows = `repeat(${pattern.height}, ${state.cellSize}vw)`
     patternElm.draggable = true
     patternElm.addEventListener("dragstart", dragstart_handler);
-    // patternElm.addEventListener("mousedown", mousedownPattern);
-    // patternElm.addEventListener("mousemove", mousemovePattern);
 
     let grid = []
     for (let row = 0; row < pattern.height; row++){
@@ -351,8 +394,11 @@ function buildPattern(pattern, id){
     for (let coord of pattern.coords){
         grid[coord[0]][coord[1]].className = "coord"
     }
+    libraryElem.appendChild(label)
     libraryElem.appendChild(patternElm)
 }
+
+const kebabCase = string => string.replace(/([a-z])([A-Z])/g, '$1-$2').replace(/\s+/g, '-').toLowerCase()
 
 /*----- Library Events -----*/
 
@@ -472,16 +518,6 @@ function placeLibraryItem(row,col, coords){
     render(state.activeGrid)
 }
 
-/**
-  * Loop through a library element's coordinates and pass their position on the main grid to a callback function.
-  *
-  * @function forEachCoord
-  * @param {int} row - The row of the main grid that the topmost cells of the library element will be placed in
-  * @param {int} col - The col of the main grid that the leftmost cells of the library element will be placed in
-  * @param {int[][]} coords - An array of coordinates of the cells in the pattern
-  * @param {int} coords[][] - The x, y coordinates of the cell of the pattern
-  * @param {function(int, int)} callback - A callback to run with the coordinates of the cell on the main grid
-  */
 function forEachCoord(row,col,coords, callback) {
     for (let coord of coords){
         let refRow = coord[0] + row
@@ -492,62 +528,3 @@ function forEachCoord(row,col,coords, callback) {
     }
 }
 
-
-// RLE interpreter
-
-function interpretRLE(){
-    let rle = 
-`!Name: Gosper glider gun
-!Author: Bill Gosper
-!The first known gun and the first known finite pattern with unbounded growth.
-!www.conwaylife.com/wiki/index.php?title=Gosper_glider_gun
-........................O
-......................O.O
-............OO......OO............OO
-...........O...O....OO............OO
-OO........O.....O...OO
-OO........O...O.OO....O.O
-..........O.....O.......O
-...........O...O
-............OO`
-    
-    let nameSearch = new RegExp("!Name: (.+)")
-    let AuthorSearch = new RegExp("Author: (.+)")
-    let commentSearch = new RegExp("!([^Name:|^Author:].+)","gm")
-    let patternLinesSearch = new RegExp("^[.|O]+","gm")
-    
-    // let name = nameSearch.exec(rle)[1]
-    let name = rle.match(nameSearch)[1]
-    let id = name.toLowerCase()
-    let author = rle.match(AuthorSearch)[1]
-    let comments = [...rle.matchAll(commentSearch)]
-    let pattern = [...rle.matchAll(patternLinesSearch)]
-
-    for (let comment of comments){
-        // console.log(comment[1])
-    }
-    let coords = []
-    let width = 0
-    for (let row = 0; row < pattern.length; row++){
-        let cells = pattern[row][0].split('')
-        for (let col = 0; col < cells.length; col++){
-            if (cells[col] === "O"){
-                coords.push([row,col])
-            }
-            if (cells.length > width) width = cells.length
-        }
-    }
-
-    libraryContent[id] = {
-        name: name,
-        coords: coords,
-        height: pattern.length,
-        width: width,
-    }
-
-    // console.log(libraryContent)
-}
-
-
-
-// buildLibraryElem()
