@@ -13,13 +13,6 @@
                                 "CASL" var(--casl);
     box-sizing: border-box;
 }
-strong{
-    --wght: 500
-}
-em{
-    --slnt: -10;
-    font-size: 90%
-}
 body{
     font-family: 'Recursive', monospace;
     padding: 3em 5vw;
@@ -30,6 +23,27 @@ body{
     display: flex;
     flex-direction: column;
 }
+h1{
+    --wght:500;
+}
+h2{
+    font-size: 1rem;
+    --wght:500;
+}
+strong{
+    --wght: 500
+}
+em{
+    --slnt: -10;
+    font-size: 90%
+}
+blockquote {
+    --slnt: -10;
+    border-left: 3px solid;
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
 
 header{
     display: flex
@@ -80,12 +94,6 @@ button#close-library {
     border: 1px solid;
     user-select: none;
 }
-blockquote {
-    border-left: 3px solid;
-    margin: 0;
-    padding-left: 1.5rem;
-}
-
 
 /* Gameboard grid */
 #grid-wrapper{
