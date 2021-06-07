@@ -213,7 +213,7 @@ function life(){
             setOwnerOfCell(row,col,countPlayer)
             scores[gridObj[state.nextGrid][row][col].player]++
         }
-        // cell is dead, it comes to life if it has 3 live neighbors
+        // cell is dead, it comes to life if it has 3 live neighbors (or 6 for highlife)
         else if (comesToLife){
             gridObj[state.nextGrid][row][col] = {alive: true}
             setOwnerOfCell(row,col,countPlayer)
@@ -241,9 +241,9 @@ function life(){
 }
 
 function setOwnerOfCell(row,col, countPlayer){
-    countPlayer[0] > 1 ? gridObj[state.nextGrid][row][col].player = 0
-    : countPlayer[1] > 1 ? gridObj[state.nextGrid][row][col].player = 1 
-    : ""
+    countPlayer[0] > countPlayer[1] ? gridObj[state.nextGrid][row][col].player = 0
+    : countPlayer[1] > countPlayer[0] ? gridObj[state.nextGrid][row][col].player = 1 
+    : gridObj[state.nextGrid][row][col].player = Math.floor(Math.random() * 2)
 }
 
 // Switching state.activeGrid and state.nextGrid between 1 and 0 using bitwise XOR
