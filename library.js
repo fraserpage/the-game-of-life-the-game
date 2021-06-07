@@ -1,4 +1,4 @@
-
+// An array of plain text pattern files pulled from https://conwaylife.com and lightly modified for consistency. It's not pretty to look at but it gets the job done.
 export const txtPatternLibrary = [ 
 `!Name: R-pentomino
 !The most active polyomino with less than six cells; all of the others stabilize in at most 10 generations, but the R-pentomino does not do so until generation 1103, by which time it has a population of 116.
@@ -6,7 +6,6 @@ export const txtPatternLibrary = [
 .OO
 OO
 .O`,
-
 
 `!Name: Toaster
 !Author: Dean Hickerson
